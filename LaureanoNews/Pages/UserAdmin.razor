@@ -1,0 +1,101 @@
+﻿@page "/useradmin"
+@attribute [Authorize(Roles = "Administrador")]
+@using Model
+@using Interfaces
+@inject IRolServices RolServices
+@inject IRolAssingServices RolAssingServices
+
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+        </ul>
+    </div>
+</nav>
+<h3>Usuarios con Roles</h3>
+
+<h4>Lista de Usuarios</h4>
+@if (rolUsers == null && roles == null)
+{
+    <p><em>Cargando Usuarios....</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Rol Actual</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rols in rolUsers)
+            {
+            <tr>
+                <td>@rols.UserName</td>
+                @if (rols.Name == null)
+                {
+                    <td>Sin Rol Asignado</td>
+                }
+                else
+                {
+                    <td>@rols.Name</td>
+                }
+
+                <td><a href="assingrol/@rols.DI">Cambiar Rol</a></td>
+            </tr>
+            }
+
+
+        </tbody>
+    </table>
+    
+
+}
+
+
+
+
+        @code {
+            [Parameter]
+            public string id { get; set; }
+            Rol rol = new Rol();
+            private IEnumerable<Rol> roles;
+            private IEnumerable<RolAssing> rolUsers;
+            public int cate { get; set; }
+
+            public int lastId { get; set; }
+            string aviso;
+
+            protected async override Task OnInitializedAsync()
+            {
+                rolUsers = await RolAssingServices.GetAllUserRols();
+                roles = await RolServices.GetAllRols();
+            }
+
+
+
+        }

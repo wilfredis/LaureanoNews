@@ -1,0 +1,216 @@
+﻿@page "/createnotice"
+@page "/createnotice/{id:int}"
+
+@using Model
+@using Syncfusion.Blazor.RichTextEditor
+@using Syncfusion.Blazor.Buttons
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+@using Interfaces
+@inject INoticeServices NoticeServices
+@inject IUserServices  UserServices
+@inject ICategoryServices  CategoryServices
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Administrador,Editor,Estandar")]
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+
+            <AuthorizeView Roles="Estandar">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Editar Noticias</a>
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Editor">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Editar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Editar todas Noticias </a>
+
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+        </ul>
+    </div>
+</nav>
+
+
+<h3 style="text-align:center">Registrar/Actualizar Noticia</h3>.
+
+<EditForm Model="noticia" OnValidSubmit="Register">
+    <div class="form-group">
+        <label>Titular</label>
+        <input type="text" class="form-control" @bind="@noticia.Titular" placeholder="Titular">
+        <ValidationMessage For="@(() => noticia.Titular)" />
+    </div>
+    <div class="form-group">
+        <label>Portada</label>
+        <input type="text" class="form-control" @bind="@noticia.Portada" placeholder="Inserte Url de la porta">
+        <ValidationMessage For="@(() => noticia.Portada)" />
+    </div>
+    <div class="form-group">
+        <label>Resumen</label>
+        <input type="text" class="form-control" @bind="@noticia.Resumen" placeholder="Resumen">
+        <ValidationMessage For="@(() => noticia.Resumen)" />
+    </div>
+   
+        <div class="form-group">
+            <label for="Categorias">Categoria:</label>
+            <select @bind="@cate" class="custom-select">
+                @if (categorias == null)
+                {
+                    <option>Cargando categorias.......</option>
+                }
+                else
+                {
+                    @foreach (var categoria in categorias)
+                    {
+                        <option value="@categoria.Id">@categoria.nombre</option>
+                    }
+                }
+
+
+                @*<option value="saab">Saab</option>
+        <option value="opel">Opel</option>
+        <option value="audi">Audi</option>*@
+            </select>
+        </div>
+
+    
+
+        <div class="form-group">
+            <label>Contenido</label>
+            <SfRichTextEditor @bind-Value="@data">
+
+            </SfRichTextEditor>
+            @*<SfButton OnClick="GuardarContenido">Get</SfButton>*@
+            <ValidationMessage For="@(() => noticia.Contenido)" />
+        </div>
+    <button type="submit" class="btn btn-primary">Guardar Noticia</button>
+    <div>
+        @if (Registrada == true)
+        {
+            <h1>Noticia Registrada/Actualizada</h1>
+        }
+        else
+        {
+            <br />
+            <h1>.....</h1>
+        }
+    </div>
+    <div>
+        @mensaje
+    </div>
+
+</EditForm>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    Noticie noticia = new Noticie();
+    User user = new User();
+    public string data { get; set; }
+    public string cate { get; set; }
+    private IEnumerable<Categoria> categorias;
+    public bool Registrada { get; set; }
+    public string mensaje { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            categorias = await CategoryServices.GetAllCategory();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+
+        if (id == 0)
+        {
+            noticia.FechaCreacion = DateTime.Now.Date;
+
+        }
+        else
+        {
+           
+
+            noticia = await NoticeServices.GetNotice(id);
+            data = noticia.Contenido;
+        }
+    }
+    protected async Task Register()
+    {
+        noticia.Contenido = this.data;
+        string email = httpContextAccessor.HttpContext.User.Identity.Name;
+
+        user = await UserServices.GetUser(email);
+        noticia.Creador = user.Id;
+
+
+
+        @if (noticia.Titular == null || noticia.Portada == null || noticia.Resumen == null)
+        {
+            mensaje = "No puede haber Campos Vacios";
+        }
+        else
+        {
+            if (cate == null)
+            {
+                cate = noticia.Categoria.ToString();
+            }
+            else
+            {
+                noticia.Categoria = int.Parse(cate);
+
+            }
+
+            Registrada = await NoticeServices.SaveNotice(noticia);
+
+        }
+
+
+    }
+
+
+}

@@ -1,0 +1,106 @@
+﻿@page "/admin"
+@using Model
+@using Interfaces
+@inject ICategoryServices  CategoryServices
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Administrador")]
+
+
+<h3 style="text-align:center">Gestion de Categorias</h3>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+          
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+        </ul>
+    </div>
+</nav>
+
+<h4>Registrar Categoria</h4>
+
+<EditForm Model="categoria" OnValidSubmit="Registrar">
+    <div class="form-group" style="display:inline-flex">
+        <input type="text" class="form-control" @bind="@categoria.nombre" placeholder="Nombre de la Categoria">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+
+    </div>
+</EditForm>
+
+
+<h4>Lista de Categorias</h4>
+@if (categorias == null)
+{
+    <p><em>Cargando Categorias....</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var categorie in categorias)
+            {
+                <tr>
+                    <td>@categorie.Id</td>
+                    <td>@categorie.nombre</td>
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    Categoria categoria = new Categoria();
+    private IEnumerable<Categoria> categorias;
+
+    protected async Task Registrar()
+    {
+        if (categoria.nombre == null)
+        {
+
+        }
+        else
+        {
+            await CategoryServices.InsertCategory(categoria);
+            categorias = await CategoryServices.GetAllCategory();
+        }
+
+
+    }
+    protected async override Task OnInitializedAsync()
+    {
+        categorias = await CategoryServices.GetAllCategory();
+
+
+
+    }
+
+}
+
+

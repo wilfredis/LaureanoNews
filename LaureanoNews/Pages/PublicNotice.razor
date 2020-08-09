@@ -1,0 +1,87 @@
+﻿@page "/publicnotice/{id:int}"
+@using Model
+@using Interfaces
+@inject INoticeServices NoticeServices
+@attribute [Authorize(Roles = "Administrador,Editor")]
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+                </li>
+                <AuthorizeView Roles="Editor">
+                    <li>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                                Gestion de Noticias
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                                <a class="dropdown-item" href="listnotice">Editar Noticias creadas</a>
+                                <a class="dropdown-item" href="noticeList">Editar todas Noticias </a>
+
+
+                            </div>
+                        </div>
+                    </li>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Administrador">
+                    <li>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                                Gestion de Noticias
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                                <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                                <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                                <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                                <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                                <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                            </div>
+                        </div>
+                    </li>
+                </AuthorizeView>
+            </ul>
+        </div>
+    </nav>
+
+    <h3 style="text-align:center">Noticia a publicar</h3>
+    <div style="margin: 1rem; padding: 1rem; border: 2px solid #ccc; ">
+        <EditForm Model="noticia" OnValidSubmit="Publicar">
+            <div class="card" style="width: 18rem; margin-left: 27rem; padding: 1rem; border: 2px solid #ccc;">
+                <img class="card-img-top" src="@noticia.Portada" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">@noticia.Titular</h5>
+                    <p class="card-text">@noticia.Resumen</p>
+                    <button type="submit" class="btn btn-primary">Publicar Noticia</button>
+                </div>
+            </div>
+        </EditForm>
+        
+    </div>
+  
+
+
+
+    @code {
+        [Parameter]
+        public int id { get; set; }
+        Noticie noticia = new Noticie();
+        public bool publicada { get; set; }
+
+        protected async override Task OnInitializedAsync()
+        {
+            noticia = await NoticeServices.GetNotice(id);
+        }
+
+        protected async Task Publicar()
+        {
+            noticia.Publicado = true;
+            noticia.FechaPublicacion = DateTime.Now.Date;
+           publicada = await NoticeServices.PublicNotice(noticia);
+        }
+
+    }

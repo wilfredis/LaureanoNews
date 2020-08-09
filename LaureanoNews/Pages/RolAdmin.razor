@@ -1,0 +1,106 @@
+﻿@page "/roladmin"
+@attribute [Authorize(Roles = "Administrador")]
+@using Model
+@using Interfaces
+@inject IRolServices RolServices
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+        </ul>
+    </div>
+</nav>
+
+<h3>Gestion de Roles</h3>
+<h4>Registrar Rol</h4>
+
+<EditForm Model="rol" OnValidSubmit="Registrar">
+    <div class="form-group" style="display:inline-flex">
+        <input type="text" class="form-control" @bind="@rol.Name" placeholder="Nombre del Rol">
+        <button type="submit" class="btn btn-primary">Guardar</button><br />
+
+    </div>
+    <p style="color:red">@aviso</p>
+</EditForm>
+
+
+<h4>Lista de Roles</h4>
+@if (roles == null)
+{
+    <p><em>Cargando Roles....</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rols in roles)
+            {
+                <tr>
+                    <td>@rols.Id</td>
+                    <td>@rols.Name</td>
+
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    Rol rol = new Rol();
+    private IEnumerable<Rol> roles;
+    public int lastId { get; set; }
+    string aviso;
+
+    protected async Task Registrar()
+    {
+        if (rol.Name == null)
+        {
+            aviso = "Rol Requerido";
+        }
+        else
+        {
+            aviso = " ";
+            rol.Id = lastId + 1;
+            await RolServices.InsertRol(rol);
+            roles = await RolServices.GetAllRols();
+        }
+
+
+
+
+    }
+    protected async override Task OnInitializedAsync()
+    {
+        roles = await RolServices.GetAllRols();
+        lastId = await RolServices.GetLastId();
+
+    }
+}

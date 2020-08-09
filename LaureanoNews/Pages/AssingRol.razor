@@ -1,0 +1,151 @@
+﻿@page "/assingrol/{id:int}"
+@attribute [Authorize(Roles = "Administrador")]
+@using Model
+@using Interfaces
+@inject IRolServices RolServices
+@inject IRolAssingServices RolAssingServices
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor httpContextAccessor
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+            <AuthorizeView Roles="Editor">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Editar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Editar todas Noticias </a>
+
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+        </ul>
+    </div>
+</nav>
+
+
+
+<h3 style="text-align:center">Gestion</h3>
+<div style="margin: 1rem; padding: 1rem; border: 2px solid #ccc; ">
+    <EditForm Model="assing">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Rol Actual a Cambiar</th>
+                    <th>Rol a Elegir </th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>@assing.UserName</td>
+                    @if (assing.Name == null)
+                    {
+                        <td>Sin Rol Asignado</td>
+                    }
+                    else
+                    {
+                        <td>@assing.Name</td>
+                    }
+                    <td>
+                        <div class="form-group">
+                            <select @bind="@cate" class="custom-select">
+                                <option value="" disabled>seleccione</option>
+                                @if (roles == null)
+                                {
+                                    <option>Cargando roles.......</option>
+                                }
+                                else
+                                {
+
+                                    @foreach (var r in roles)
+                                    {
+                                        <option value="@r.Id">@r.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </td>
+                    <td><input class="btn-primary" type="button" @onclick="Save" value="Cambiar Rol" /></td>
+                </tr>
+                
+
+
+            </tbody>
+        </table>
+    </EditForm>
+
+</div>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    Rol rol = new Rol();
+    private IEnumerable<Rol> roles;
+    private IEnumerable<RolAssing> rolUsers;
+    RolAssing assing = new RolAssing();
+    public int cate { get; set; }
+
+    public int lastId { get; set; }
+    string aviso;
+
+    protected async override Task OnInitializedAsync()
+    {
+        string email = httpContextAccessor.HttpContext.User.Identity.Name;
+        assing = await RolAssingServices.GetUserRols(id);
+        roles = await RolServices.GetAllRols();
+    }
+
+    protected async Task Save()
+    {
+        if (cate == 0)
+        {
+
+        }
+        else
+        {
+            if (assing.Name == null)
+            {
+                await RolAssingServices.InsertUserRols(assing.IdUsuario, cate);
+                assing = await RolAssingServices.GetUserRols(id);
+            }
+            else
+            {
+                await RolAssingServices.UpdateUserRols(assing.IdUsuario, cate);
+                assing = await RolAssingServices.GetUserRols(id);
+            }
+
+
+        }
+
+    }
+}

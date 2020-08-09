@@ -1,0 +1,213 @@
+﻿@page "/"
+@page "/{id:int}"
+@*@page "/{category:int}"
+    @page "/{title:string}"*@
+
+
+@using Model
+@using Interfaces
+@inject INoticeServices NoticeServices
+@inject ICategoryServices  CategoryServices
+
+
+<h1 style="text-align:center">Bienvenido a Noticias Laureano</h1>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+            <li>
+                @*<div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                    Noticias por Categoria
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    @if (categorias == null)
+                    {
+                        <a class="dropdown-item" href="#">Cargando....</a>
+                    }
+                    else
+                    {
+                        @foreach (var categoria in categorias)
+                        {
+                            <a class="dropdown-item" href="/@categoria.Id">@categoria.nombre</a>
+                        }
+                    }
+
+                </div>
+            </div>*@
+                <EditForm Model="@notica" OnValidSubmit="NoticiaPorCategoria">
+                    <div style="display:inline-flex">
+                        <div class="form-group" style="display:inline-flex">
+                            <select @bind="@cate" class="custom-select">
+                                @if (categorias == null)
+                                {
+                                    <option>Cargando categorias.......</option>
+                                }
+                                else
+                                {
+                                    <option disabled selected value="">Categorias</option>
+                                    @foreach (var categoria in categorias)
+                                    {
+                                        <option value="@categoria.Id">@categoria.nombre</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-outline-success my-2 my-sm-0">Buscar</button>
+
+                        </div>
+                    </div>
+                </EditForm>
+
+                @*<div class="form-group" style="display:inline-flex">
+                <select @bind="@cate" class="custom-select">
+                    @if (categorias == null)
+                    {
+                        <option>Cargando categorias.......</option>
+                    }
+                    else
+                    {
+                        <option disabled selected value="">Categorias</option>
+                        @foreach (var categoria in categorias)
+                        {
+                            <option value="@categoria.Id">@categoria.nombre</option>
+                        }
+                    }
+                </select>
+            </div>*@
+            </li>
+            <AuthorizeView Roles="Estandar">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Editar Noticias</a>
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Editor">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Editar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Editar todas Noticias </a>
+
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <EditForm Model="@notica" OnValidSubmit="NoticiaPorTitular">
+                <div style="display:inline-flex; margin-left:450px">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar" @bind="@notica.Titular" />
+                    <button type="submit" class="btn btn-outline-success my-2 my-sm-0">Buscar</button>
+                </div>
+            </EditForm>
+        </ul>
+        @*<form class="form-inline my-2 my-lg-0" OnValidSubmit="">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>*@
+       
+    </div>
+</nav>
+
+
+
+<div style="margin: 1rem; padding: 1rem; border: 2px solid #ccc; ">
+    @if (notices == null)
+    {
+        <p><em>Cargando</em></p>
+    }
+    else
+    {
+        @foreach (var noticia in notices)
+        {
+            <div class="card" style="width: 22rem; border: 2px solid #ccc; margin: 10px; display: inline-flex;">
+                <img class="card-img-top" src="@noticia.Portada" alt="Card image cap" height="300" width="400">
+                <div class="card-body">
+                    <h5 class="card-title">@noticia.Titular</h5>
+                    <p class="card-text">@noticia.Resumen</p>
+                    <a href="view/@noticia.Id" class="btn btn-primary">Ver</a>
+                </div>
+            </div>
+        }
+    }
+
+</div>
+
+@code{
+    [Parameter]
+    public int id { get; set; }
+    public string Titulo { get; set; }
+    private IEnumerable<Categoria> categorias;
+    private IEnumerable<Noticie> notices;
+    Noticie notica = new Noticie();
+    public int cate { get; set; }
+    public int p { get; set; }
+
+
+    protected async Task NoticiaPorCategoria()
+    {
+        
+            notices = await NoticeServices.GetNoticeByCategory(cate);
+    }
+
+
+
+    protected async Task NoticiaPorTitular()
+    {
+        notices = await NoticeServices.GetNoticeByTitle(notica.Titular);
+
+    }
+
+
+    protected async override Task OnInitializedAsync()
+    {
+       
+        try
+        {
+
+            notices = await NoticeServices.GetPublicNoticias();
+
+            categorias = await CategoryServices.GetAllCategory();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+
+    }
+}

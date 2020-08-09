@@ -1,0 +1,118 @@
+﻿@page "/noticeList"
+@using Model
+@using Interfaces
+@inject INoticeServices NoticeServices
+@attribute [Authorize(Roles = "Administrador,Editor")]
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href=" ">Inicio <span class="sr-only">(current)</span></a>
+            </li>
+            <AuthorizeView Roles="Editor">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Editar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Editar todas Noticias </a>
+
+
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Administrador">
+                <li>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color:white; color:black">
+                            Gestion de Noticias
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="createnotice">Registrar Noticias</a>
+                            <a class="dropdown-item" href="listnotice">Administrar Noticias creadas</a>
+                            <a class="dropdown-item" href="noticeList">Administrar todas Noticias </a>
+                            <a class="dropdown-item" href="admin">Administrar Categorias </a>
+                            <a class="dropdown-item" href="roladmin">Administrar Roles </a>
+                            <a class="dropdown-item" href="useradmin">Administrar Usuarios </a>
+                        </div>
+                    </div>
+                </li>
+            </AuthorizeView>
+        </ul>
+        
+    </div>
+</nav>
+
+<h3  style="text-align:center">Noticias Creadas o Registradas por todos los Usuarios</h3>
+@if (notices == null)
+{
+    <p><em>Cargando noticias....</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Titular</th>
+                <th>Resumen</th>
+                <th>Registrado</th>
+                <th>Publicado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var noticia in notices)
+            {
+            <tr>
+                <td>@noticia.Id</td>
+                <td>@noticia.Titular</td>
+                <td>@noticia.Resumen</td>
+                <td>@noticia.FechaCreacion</td>
+                @if (noticia.Publicado == true)
+                {
+                    <td>Publicada</td>
+                }
+                else
+                {
+                    <td>No publicada</td>
+                }
+                <td><a href="createnotice/@noticia.Id"><i>Editar</i></a></td>
+                @if (noticia.Publicado == true)
+                {
+                    <td><a href="hidenotice/@noticia.Id"><i>Ocultar</i></a></td>
+
+                }
+                else
+                {
+                    <td><a href="publicnotice/@noticia.Id"><i>Publicar</i></a></td>
+
+                }
+
+
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<Noticie> notices;
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            notices = await NoticeServices.GetAllNoticias();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+}
